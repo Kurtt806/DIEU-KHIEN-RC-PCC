@@ -1,4 +1,28 @@
 dependencies:
+  espressif/button:
+    component_hash: d0afa32f0e50d60bc0c6fc23f7eea98adc6b02cfe70b590bc52c23c506745287
+    dependencies:
+    - name: espressif/cmake_utilities
+      registry_url: https://components.espressif.com
+      require: private
+      version: '*'
+    - name: idf
+      require: private
+      version: '>=4.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 4.1.6
+  espressif/cmake_utilities:
+    component_hash: 05165f30922b422b4b90c08845e6d449329b97370fbd06309803d8cb539d79e3
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 1.1.1
   idf:
     source:
       type: idf
@@ -18,8 +42,9 @@ dependencies:
     - esp32c3
     version: 1.0.5
 direct_dependencies:
+- espressif/button
 - idf
 - kurtt806/khoa_wifi_connect
-manifest_hash: a3829727fd13c4715bbef5900176a2edd2b68f577054b11cecb3ef460bf24599
+manifest_hash: 8cd1c91f06312ca320beb31d5f5d0b8f9b88fb4b7e0295af9eb01d79405e690e
 target: esp32s3
 version: 2.0.0

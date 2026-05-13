@@ -1,13 +1,14 @@
 #include <cstdio>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/gpio.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "iot_button.h"
+#include "button_gpio.h"
 #include "wifi_manager.h"
 #include "tcp_server.h"
 
-#define BOOT_BUTTON_GPIO    GPIO_NUM_0
+#define BOOT_BUTTON_GPIO    0
 #define LONG_PRESS_MS       3000
 
 static const char *TAG = "rc_car";
@@ -31,38 +32,27 @@ static void on_wifi_event(WifiEvent event) {
     }
 }
 
-static void boot_button_task(void *arg) {
-    gpio_config_t io_conf = {};
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = (1ULL << BOOT_BUTTON_GPIO);
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-    gpio_config(&io_conf);
+static void boot_button_cb(void *button_handle, void *usr_data) {
+    ESP_LOGI(TAG, "BOOT long press -> Config AP");
+    WifiManager::GetInstance().StartConfigAp();
+}
 
-    TickType_t press_start = 0;
-    bool was_pressed = false;
+static void init_boot_button(void) {
+    button_config_t btn_cfg = {
+        .long_press_time = LONG_PRESS_MS,
+        .short_press_time = 200,
+    };
 
-    while (1) {
-        bool pressed = (gpio_get_level(BOOT_BUTTON_GPIO) == 0);
+    button_gpio_config_t gpio_cfg = {
+        .gpio_num = BOOT_BUTTON_GPIO,
+        .active_level = 0,
+        .enable_power_save = false,
+        .disable_pull = false,
+    };
 
-        if (pressed && !was_pressed) {
-            press_start = xTaskGetTickCount();
-        }
-
-        if (pressed && was_pressed) {
-            TickType_t now = xTaskGetTickCount();
-            if ((now - press_start) >= pdMS_TO_TICKS(LONG_PRESS_MS)) {
-                ESP_LOGI(TAG, "BOOT long press -> Config AP");
-                WifiManager::GetInstance().StartConfigAp();
-                while (gpio_get_level(BOOT_BUTTON_GPIO) == 0) {
-                    vTaskDelay(pdMS_TO_TICKS(100));
-                }
-            }
-        }
-
-        was_pressed = pressed;
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
+    button_handle_t btn_handle = NULL;
+    ESP_ERROR_CHECK(iot_button_new_gpio_device(&btn_cfg, &gpio_cfg, &btn_handle));
+    ESP_ERROR_CHECK(iot_button_register_cb(btn_handle, BUTTON_LONG_PRESS_START, NULL, boot_button_cb, NULL));
 }
 
 extern "C" void app_main(void) {
@@ -77,7 +67,7 @@ extern "C" void app_main(void) {
     ESP_ERROR_CHECK(ret);
     ESP_LOGI(TAG, "NVS: initialized");
 
-    xTaskCreate(boot_button_task, "btn_mon", 2048, NULL, 5, NULL);
+    init_boot_button();
 
     auto &wifi = WifiManager::GetInstance();
 

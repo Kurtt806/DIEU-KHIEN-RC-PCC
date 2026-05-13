@@ -169,8 +169,11 @@ void tcp_server_start(void) {
         ESP_LOGW(TAG, "TCP server already running");
         return;
     }
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, nullptr, 5, &s_server_task);
-    ESP_LOGI(TAG, "TCP server task created");
+    BaseType_t ret = xTaskCreate(tcp_server_task, "tcp_server", 4096, nullptr, 5, &s_server_task);
+    if (ret != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create TCP server task");
+        s_server_task = nullptr;
+    }
 }
 
 void tcp_server_stop(void) {
@@ -182,9 +185,6 @@ void tcp_server_stop(void) {
         close(s_listen_fd);
         s_listen_fd = -1;
     }
-    if (s_server_task) {
-        vTaskDelete(s_server_task);
-        s_server_task = nullptr;
-    }
-    ESP_LOGI(TAG, "TCP server stopped");
+    // Task tự cleanup và self-delete khi phát hiện socket đã đóng
+    ESP_LOGI(TAG, "TCP server stop requested");
 }
