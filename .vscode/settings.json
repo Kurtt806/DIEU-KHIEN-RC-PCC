@@ -12,5 +12,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=d:\\PCC\\DIEU-KHIEN-RC-PCC\\build"
-  ]
+  ],
+  "commentTranslate.targetLanguage": "vi"
 }

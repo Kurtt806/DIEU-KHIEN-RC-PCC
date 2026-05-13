@@ -1,0 +1,25 @@
+dependencies:
+  idf:
+    source:
+      type: idf
+    version: 5.5.2
+  kurtt806/khoa_wifi_connect:
+    component_hash: 33468ba0bc756c8e32fe15eecd84efcf8c3a44d6dfd8bbb9a22cbe446b1bd34a
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32
+    - esp32s3
+    - esp32c3
+    version: 1.0.5
+direct_dependencies:
+- idf
+- kurtt806/khoa_wifi_connect
+manifest_hash: a3829727fd13c4715bbef5900176a2edd2b68f577054b11cecb3ef460bf24599
+target: esp32s3
+version: 2.0.0
