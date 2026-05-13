@@ -1,0 +1,19 @@
+Command: ninja all
+[1/10] Performing build step for 'bootloader'
+[1/1] C:\WINDOWS\system32\cmd.exe /C "cd /D D:\PCC\DIEU-KHIEN-RC-PCC\build\bootloader\esp-idf\esptool_py && C:\Espressif\python_env\idf5.5_py3.13_env\Scripts\python.exe C:/esp/v5.5.2/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 D:/PCC/DIEU-KHIEN-RC-PCC/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5830 bytes. 0x27d0 bytes (31%) free.
+[2/10] No install step for 'bootloader'
+[3/10] Completed 'bootloader'
+[4/10] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/app_main.c.obj
+[5/10] Linking C static library esp-idf\main\libmain.a
+[6/10] Generating esp-idf/esp_system/ld/sections.ld
+[7/10] Building C object CMakeFiles/rc_car.elf.dir/project_elf_src_esp32s3.c.obj
+[8/10] Linking CXX executable rc_car.elf
+[9/10] Generating binary image from built executable
+esptool.py v4.12.dev2
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated D:/PCC/DIEU-KHIEN-RC-PCC/build/rc_car.bin
+[10/10] C:\WINDOWS\system32\cmd.exe /C "cd /D D:\PCC\DIEU-KHIEN-RC-PCC\build\esp-idf\esptool_py && C:\Espressif\python_env\idf5.5_py3.13_env\Scripts\python.exe C:/esp/v5.5.2/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app D:/PCC/DIEU-KHIEN-RC-PCC/build/partition_table/partition-table.bin D:/PCC/DIEU-KHIEN-RC-PCC/build/rc_car.bin"
+rc_car.bin binary size 0x2c580 bytes. Smallest app partition is 0x600000 bytes. 0x5d3a80 bytes (97%) free.
