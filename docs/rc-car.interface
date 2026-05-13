@@ -1,0 +1,25 @@
+# RoboRemo Interface for ESP32-S3 RC Car
+# Protocol: TCP, single-char commands + SERVO1/SERVO2/ESC
+# Connect to ESP32 IP: port 9870
+# =========================================
+
+# Top status bar
+level,alive,alive,0,0,50,7,#00FF00,12
+level,rssi,RSSI:,50,0,50,7,#FFFFFF,12
+
+# Stop button (big, red)
+button,stop,s,20,10,60,15,#FF4444
+
+# Direction pad
+button,forward,f,33,28,34,15,#4CAF50
+button,backward,b,33,46,34,15,#F44336
+button,left,l,5,33,25,18,#FF9800
+button,right,r,70,33,25,18,#FF9800
+
+# Center button
+button,center,c,33,64,34,12,#2196F3
+
+# Sliders for proportional control
+slider,servo1,SERVO1:,0,78,100,6,#00BCD4,1000,2000
+slider,servo2,SERVO2:,0,86,100,6,#FF9800,1000,2000
+slider,esc,ESC:,0,94,100,6,#E91E63,0,255

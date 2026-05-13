@@ -7,12 +7,14 @@
 #include "button_gpio.h"
 #include "wifi_manager.h"
 #include "tcp_server.h"
+#include "roboremo.h"
 
-#define BOOT_BUTTON_GPIO    0
-#define LONG_PRESS_MS       3000
+#define BOOT_BUTTON_GPIO    0      // nút BOOT trên ESP32-S3
+#define LONG_PRESS_MS       3000   // giữ 3s để vào chế độ Config AP
 
 static const char *TAG = "rc_car";
 
+// Callback sự kiện WiFi – tự động start/stop TCP server
 static void on_wifi_event(WifiEvent event) {
     switch (event) {
         case WifiEvent::Connected:
@@ -32,11 +34,13 @@ static void on_wifi_event(WifiEvent event) {
     }
 }
 
+// Nhấn giữ nút BOOT 3s → vào chế độ Config AP (Captive Portal)
 static void boot_button_cb(void *button_handle, void *usr_data) {
     ESP_LOGI(TAG, "BOOT long press -> Config AP");
     WifiManager::GetInstance().StartConfigAp();
 }
 
+// Khởi tạo nút BOOT dùng thư viện espressif/button
 static void init_boot_button(void) {
     button_config_t btn_cfg = {
         .long_press_time = LONG_PRESS_MS,
@@ -45,9 +49,9 @@ static void init_boot_button(void) {
 
     button_gpio_config_t gpio_cfg = {
         .gpio_num = BOOT_BUTTON_GPIO,
-        .active_level = 0,
+        .active_level = 0,          // active low (nhấn = 0)
         .enable_power_save = false,
-        .disable_pull = false,
+        .disable_pull = false,      // dùng pull-up nội
     };
 
     button_handle_t btn_handle = NULL;
@@ -58,6 +62,7 @@ static void init_boot_button(void) {
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "RC Car starting...");
 
+    // Khởi tạo NVS (bắt buộc trước khi dùng WifiManager)
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_LOGW(TAG, "NVS: erasing...");
@@ -67,8 +72,28 @@ extern "C" void app_main(void) {
     ESP_ERROR_CHECK(ret);
     ESP_LOGI(TAG, "NVS: initialized");
 
+    // Nút BOOT → Config AP
     init_boot_button();
 
+    // Khởi tạo RoboRemo protocol handler với các callback điều khiển
+    roboremo_callbacks_t rcb = {};
+    rcb.on_forward  = [](bool a) { ESP_LOGI(TAG, "Forward: %d", a); };
+    rcb.on_backward = [](bool a) { ESP_LOGI(TAG, "Backward: %d", a); };
+    rcb.on_left     = [](bool a) { ESP_LOGI(TAG, "Left: %d", a); };
+    rcb.on_right    = [](bool a) { ESP_LOGI(TAG, "Right: %d", a); };
+    rcb.on_servo1   = [](int v)  { ESP_LOGI(TAG, "Servo1: %d", v); };
+    rcb.on_servo2   = [](int v)  { ESP_LOGI(TAG, "Servo2: %d", v); };
+    rcb.on_esc      = [](int v)  { ESP_LOGI(TAG, "ESC: %d", v); };
+
+    // Callback inject dữ liệu status (giúp roboremo module không phụ thuộc WifiManager)
+    rcb.on_get_status = [](char *buf, size_t size) -> int {
+        return snprintf(buf, size, "STATUS:rssi=%d\n",
+                        WifiManager::GetInstance().GetRssi());
+    };
+
+    roboremo_init(&rcb);
+
+    // WiFi: dùng khoa_wifi_connect component
     auto &wifi = WifiManager::GetInstance();
 
     WifiManagerConfig config;
@@ -79,6 +104,7 @@ extern "C" void app_main(void) {
     wifi.Initialize(config);
     wifi.StartStation();
 
+    // Vòng lặp chính – các task khác chạy riêng (TCP server, button)
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
